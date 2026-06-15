@@ -52,10 +52,34 @@ public class JavaFXConfig implements ApplicationListener<ContextClosedEvent> {
         ReservationController reservationCtrl = applicationContext.getBean(ReservationController.class);
         StatisticsController statisticsCtrl = applicationContext.getBean(StatisticsController.class);
 
-        // 创建 Tab
-        Tab seatTab = new Tab("座位布局", seatLayout.createView());
-        Tab reservationTab = new Tab("预约管理", reservationCtrl.createView());
-        Tab statisticsTab = new Tab("数据统计", statisticsCtrl.createView());
+        // 创建 Tab，初始不设内容，由选中事件动态生成
+        Tab seatTab = new Tab("座位布局");
+        Tab reservationTab = new Tab("预约管理");
+        Tab statisticsTab = new Tab("数据统计");
+
+        // 切换到座位布局 Tab 时刷新
+        seatTab.setOnSelectionChanged(e -> {
+            if (seatTab.isSelected()) {
+                seatTab.setContent(seatLayout.createView());
+            }
+        });
+
+        // 切换到预约管理 Tab 时刷新
+        reservationTab.setOnSelectionChanged(e -> {
+            if (reservationTab.isSelected()) {
+                reservationTab.setContent(reservationCtrl.createView());
+            }
+        });
+
+        // 切换到数据统计 Tab 时刷新
+        statisticsTab.setOnSelectionChanged(e -> {
+            if (statisticsTab.isSelected()) {
+                statisticsTab.setContent(statisticsCtrl.createView());
+            }
+        });
+
+        // 默认先加载第一个 Tab 的内容
+        seatTab.setContent(seatLayout.createView());
 
         tabPane.getTabs().addAll(seatTab, reservationTab, statisticsTab);
 

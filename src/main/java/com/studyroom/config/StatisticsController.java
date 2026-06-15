@@ -41,8 +41,23 @@ public class StatisticsController {
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
-        Tab usageTab = new Tab("使用率统计", createUsageRateView());
-        Tab durationTab = new Tab("学生使用时长统计", createDurationView());
+        Tab usageTab = new Tab("使用率统计");
+        Tab durationTab = new Tab("学生使用时长统计");
+
+        // 切换到该 Tab 时实时刷新数据
+        usageTab.setOnSelectionChanged(e -> {
+            if (usageTab.isSelected()) {
+                usageTab.setContent(createUsageRateView());
+            }
+        });
+        durationTab.setOnSelectionChanged(e -> {
+            if (durationTab.isSelected()) {
+                durationTab.setContent(createDurationView());
+            }
+        });
+
+        // 默认先加载第一个 Tab 的内容
+        usageTab.setContent(createUsageRateView());
 
         tabPane.getTabs().addAll(usageTab, durationTab);
         view.getChildren().add(tabPane);
