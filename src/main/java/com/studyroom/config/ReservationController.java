@@ -281,49 +281,43 @@ public class ReservationController {
 
         dialog.getDialogPane().setContent(grid);
 
-        dialog.setResultConverter(button -> {
-            if (button == confirmType) {
-                Map<String, String> result = new HashMap<>();
-                result.put("seatId", seatCombo.getValue() != null ?
-                        String.valueOf(seatCombo.getValue().getId()) : "");
-                result.put("studentNo", studentNoField.getText().trim());
-                result.put("name", nameField.getText().trim());
-                result.put("phone", phoneField.getText().trim());
-                result.put("date", startDatePicker.getValue().toString());
-                result.put("startHour", startHourSpinner.getValue().toString());
-                result.put("startMin", startMinSpinner.getValue().toString());
-                result.put("duration", durationSpinner.getValue().toString());
-                return result;
-            }
-            return null;
-        });
+        // 拦截确认按钮的点击事件，在校验不通过时阻止对话框关闭
+        Button confirmBtn = (Button) dialog.getDialogPane().lookupButton(confirmType);
+        confirmBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
+            Seat selectedSeat = seatCombo.getValue();
+            String studentNo = studentNoField.getText().trim();
+            String name = nameField.getText().trim();
 
-        dialog.showAndWait().ifPresent(data -> {
-            String seatIdStr = data.get("seatId");
-            String studentNo = data.get("studentNo");
-            String name = data.get("name");
-            if (seatIdStr.isEmpty() || studentNo.isEmpty() || name.isEmpty()) {
+            if (selectedSeat == null || studentNo.isEmpty() || name.isEmpty()) {
                 DialogUtil.showWarning("输入错误", "座位、学号和姓名为必填项");
+                event.consume();
                 return;
             }
+
+            if (startDatePicker.getValue() == null) {
+                DialogUtil.showWarning("输入错误", "请选择日期");
+                event.consume();
+                return;
+            }
+
+            int hour = startHourSpinner.getValue();
+            int min = startMinSpinner.getValue();
+            int duration = durationSpinner.getValue();
+            LocalDateTime startTime = LocalDateTime.of(startDatePicker.getValue(), LocalTime.of(hour, min));
+            LocalDateTime endTime = startTime.plusHours(duration);
+
             try {
-                Long seatId = Long.parseLong(seatIdStr);
-                LocalDate date = LocalDate.parse(data.get("date"));
-                int hour = Integer.parseInt(data.get("startHour"));
-                int min = Integer.parseInt(data.get("startMin"));
-                int duration = Integer.parseInt(data.get("duration"));
-
-                LocalDateTime startTime = LocalDateTime.of(date, LocalTime.of(hour, min));
-                LocalDateTime endTime = startTime.plusHours(duration);
-
-                reservationService.reserve(seatId, studentNo, name,
-                        data.get("phone"), startTime, endTime);
+                reservationService.reserve(selectedSeat.getId(), studentNo, name,
+                        phoneField.getText().trim(), startTime, endTime);
                 DialogUtil.showInfo("预约成功", "预约成功！");
                 refreshData();
             } catch (Exception ex) {
                 DialogUtil.showError("预约失败", ex.getMessage());
+                event.consume();
             }
         });
+
+        dialog.showAndWait();
     }
 
     private void refreshData() {
