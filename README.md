@@ -17,3 +17,7 @@ A desktop-based study room seat reservation and management system.
 
 ```bash
 mvn javafx:run
+```
+
+## License
+[MIT](https://opensource.org/licenses/MIT) © 2026-present [macarons-me](https://github.com/macarons-me)
